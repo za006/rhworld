@@ -1,5 +1,30 @@
-import { serveFile } from "jsr:@std/http/file-server";
+const roomkv = await Deno.openKv();
 
-Deno.serve((req: Request) => {
-    return serveFile(req, "./index.html");
+Deno.serve(async (request: Request) => {
+  if (request.method === "POST") {
+    const data = await request.json();
+    await roomkv.set(["last_update"], data);
+    return new Response("Data saved!");
+  }
+
+  const entry = await roomkv.get(["last_update"]);
+  const info = (entry.value as any) || {};
+
+  const html = `
+    <html>
+      <head><meta charset="utf-8"></head>
+      <body>
+        <h1>Hello World!</h1>
+        <hr>
+        <h2>Office Network Status</h2>
+        <p>test name: <span style="color:gray;">${info.TestName || 'N/A'}</span></p>
+        <p>real name: <strong style="color:green;">${info.RealName || '未获取'}</strong></p>
+        <p>ipv4 addr: <strong style="color:orange;">${info.IPv4 || 'N/A'}</strong></p>
+        <p>public ip: <strong style="color:purple;">${info.PublicIP || 'N/A'}</strong></p>
+        <p>obtained: <span style="color:blue;">${info.Obtained || 'N/A'}</span></p>
+        <p>lease total: <strong style="color:crimson;">${info.LeaseTotal || 'N/A'}</strong></p>
+      </body>
+    </html>`;
+    
+  return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 });
