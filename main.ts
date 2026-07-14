@@ -1,3 +1,5 @@
+throw new Error("紧急人工拉闸：暂停处理任何请求");
+
 const roomkv = await Deno.openKv();
 
 Deno.serve(async (request: Request) => {
